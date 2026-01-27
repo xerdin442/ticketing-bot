@@ -1,1 +1,1 @@
-# ticketing-bot
+# Ticketing Bot
