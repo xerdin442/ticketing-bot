@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/xerdin442/ticketing-bot/internal/api/handlers"
 	"github.com/xerdin442/ticketing-bot/internal/api/middleware"
 )
 
@@ -24,7 +25,7 @@ func (app *application) routes() http.Handler {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// h := handlers.New(app.services, app.cache, app.tasksQueue)
+	h := handlers.New(app.services, app.cache, app.tasksQueue)
 
 	return r
 }

@@ -1,38 +1,42 @@
 package dto
 
+type IncomingMessageType string
+
+const (
+	TextMessageType        IncomingMessageType = "text"
+	LocationMessageType    IncomingMessageType = "location"
+	InteractiveMessageType IncomingMessageType = "interactive"
+)
+
 type IncomingMessage struct {
 	Context *struct {
 		From string `json:"from"`
 		ID   string `json:"id"`
 	} `json:"context,omitempty"`
-	From        string       `json:"from"`
-	ID          string       `json:"id"`
-	Timestamp   string       `json:"timestamp"`
-	Type        string       `json:"type"` // "text" | "location" | "interactive"
-	Text        *MessageBody `json:"text,omitempty"`
-	Location    *Location    `json:"location,omitempty"`
-	Interactive *Interactive `json:"interactive,omitempty"`
+	From      string              `json:"from"`
+	ID        string              `json:"id"`
+	Timestamp string              `json:"timestamp"`
+	Type      IncomingMessageType `json:"type"`
+	Text      *struct {
+		Body string `json:"body"`
+	} `json:"text,omitempty"`
+	Location    *LocationMessage    `json:"location,omitempty"`
+	Interactive *InteractiveMessage `json:"interactive,omitempty"`
 }
 
-type MessageBody struct {
-	Body string `json:"body"`
-}
-
-type Location struct {
+type LocationMessage struct {
 	Address   *string `json:"address,omitempty"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	Name      *string `json:"name,omitempty"`
 }
 
-type Interactive struct {
-	Type        string       `json:"type"`
-	ButtonReply *ButtonReply `json:"button_reply,omitempty"`
-}
-
-type ButtonReply struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
+type InteractiveMessage struct {
+	Type        string `json:"type"`
+	ButtonReply *struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	} `json:"button_reply,omitempty"`
 }
 
 type WebhookRequest struct {
@@ -64,8 +68,15 @@ type ReplyText struct {
 	Body       string `json:"body"`
 }
 
+type ReplyInteractiveType string
+
+const (
+	LocationRequestReply   ReplyInteractiveType = "location_request_message"
+	ButtonInteractiveReply ReplyInteractiveType = "button"
+)
+
 type ReplyInteractive struct {
-	Type   string `json:"type"` // "location_request_message" | "button"
+	Type   ReplyInteractiveType `json:"type"`
 	Header *struct {
 		Type  string `json:"type"`
 		Image struct {

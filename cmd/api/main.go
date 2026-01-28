@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/xerdin442/ticketing-bot/internal/cache"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
+	"github.com/xerdin442/ticketing-bot/internal/service"
 )
 
 type application struct {
@@ -16,6 +17,7 @@ type application struct {
 	env        *secrets.Secrets
 	tasksQueue *asynq.Client
 	cache      *cache.Cache
+	services   *service.Manager
 }
 
 func main() {
@@ -32,6 +34,7 @@ func main() {
 
 	// Initialize cache and services
 	cache := cache.New(env)
+	svc := service.NewManager(env, cache)
 
 	// Initialize task queue
 	tasksQueue := asynq.NewClient(
@@ -46,6 +49,7 @@ func main() {
 		cache:      cache,
 		tasksQueue: tasksQueue,
 		env:        env,
+		services:   svc,
 	}
 
 	// Start the http server

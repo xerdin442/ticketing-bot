@@ -9,6 +9,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/xerdin442/ticketing-bot/internal/cache"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/tasks"
 )
@@ -16,6 +17,9 @@ import (
 func main() {
 	// Load environment variables
 	env := secrets.Load()
+
+	// Initialize cache
+	cache := cache.New(env)
 
 	// Improve readability of the logs in development
 	if env.Environment == "development" {
@@ -34,7 +38,7 @@ func main() {
 	)
 
 	// Define tasks handlers
-	h := tasks.NewHandler(env)
+	h := tasks.NewHandler(env, cache)
 
 	mux := asynq.NewServeMux()
 

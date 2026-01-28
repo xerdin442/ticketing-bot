@@ -5,11 +5,11 @@ import (
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 )
 
-type GeminiService struct {
+type ContextService struct {
 	env   *secrets.Secrets
 	cache *cache.Cache
 }
 
-func NewGeminiService(s *secrets.Secrets, c *cache.Cache) *GeminiService {
-	return &GeminiService{env: s, cache: c}
+func NewContextService(s *secrets.Secrets, c *cache.Cache) *ContextService {
+	return &ContextService{env: s, cache: c}
 }
