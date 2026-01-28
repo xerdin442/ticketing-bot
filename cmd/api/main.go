@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/xerdin442/ticketing-bot/internal/cache"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/service"
 )
@@ -16,7 +16,7 @@ type application struct {
 	port       int
 	env        *secrets.Secrets
 	tasksQueue *asynq.Client
-	cache      *cache.Cache
+	cache      *redis.Client
 	services   *service.Manager
 }
 
@@ -33,7 +33,10 @@ func main() {
 	}
 
 	// Initialize cache and services
-	cache := cache.New(env)
+	cache := redis.NewClient(&redis.Options{
+		Addr:     env.RedisAddr,
+		Password: env.RedisPassword,
+	})
 	svc := service.NewManager(env, cache)
 
 	// Initialize task queue

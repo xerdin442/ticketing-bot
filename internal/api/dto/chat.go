@@ -2,17 +2,33 @@ package dto
 
 import "google.golang.org/genai"
 
-type ConversationState string
+type ConversationState int
 
 const (
-	StateInitial            ConversationState = "initial"
-	StateEventQuery         ConversationState = "event_query"
-	StateEventSelected      ConversationState = "event_selected"
-	StateTicketTierSelected ConversationState = "ticket_tier_selected"
-	StateAwaitingPayment    ConversationState = "awaiting_payment"
-	StateCompleted          ConversationState = "completed"
-	StateResponseError      ConversationState = "response_error"
+	StateInitial ConversationState = iota
+	StateEventQuery
+	StateEventSelected
+	StateTicketTierSelected
+	StateAwaitingPayment
+	StateCompleted
+	StateResponseError
 )
+
+func (s ConversationState) String() string {
+	states := []string{
+		"initial",
+		"event_query",
+		"event_selected",
+		"ticket_tier_selected",
+		"awaiting_payment",
+		"completed",
+		"response_error",
+	}
+	if s < 0 || int(s) >= len(states) {
+		return "unknown"
+	}
+	return states[s]
+}
 
 type ConversationContext struct {
 	Content      *genai.Content    `json:"content"`

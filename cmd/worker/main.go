@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/xerdin442/ticketing-bot/internal/cache"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/tasks"
 )
@@ -19,7 +19,10 @@ func main() {
 	env := secrets.Load()
 
 	// Initialize cache
-	cache := cache.New(env)
+	cache := redis.NewClient(&redis.Options{
+		Addr:     env.RedisAddr,
+		Password: env.RedisPassword,
+	})
 
 	// Improve readability of the logs in development
 	if env.Environment == "development" {

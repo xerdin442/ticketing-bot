@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"github.com/hibiken/asynq"
-	"github.com/xerdin442/ticketing-bot/internal/cache"
+	"github.com/redis/go-redis/v9"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/service"
 )
@@ -16,9 +16,9 @@ type TaskHandler struct {
 	gemini *service.GeminiService
 }
 
-func NewHandler(s *secrets.Secrets, c *cache.Cache) *TaskHandler {
+func NewHandler(s *secrets.Secrets, r *redis.Client) *TaskHandler {
 	return &TaskHandler{
 		env:    s,
-		gemini: service.NewGeminiService(s, c),
+		gemini: service.NewGeminiService(s, r),
 	}
 }
