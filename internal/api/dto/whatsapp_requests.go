@@ -1,12 +1,25 @@
 package dto
 
-type IncomingMessageType string
+type IncomingMessageType int
 
 const (
-	TextMessageType        IncomingMessageType = "text"
-	LocationMessageType    IncomingMessageType = "location"
-	InteractiveMessageType IncomingMessageType = "interactive"
+	TextMessageType IncomingMessageType = iota
+	LocationMessageType
+	InteractiveMessageType
 )
+
+func (s IncomingMessageType) String() string {
+	types := []string{
+		"text",
+		"location",
+		"interactive",
+	}
+
+	if s < 0 || int(s) >= len(types) {
+		return "unknown"
+	}
+	return types[s]
+}
 
 type IncomingMessage struct {
 	Context *struct {
@@ -68,12 +81,24 @@ type ReplyText struct {
 	Body       string `json:"body"`
 }
 
-type ReplyInteractiveType string
+type ReplyInteractiveType int
 
 const (
-	LocationRequestReply   ReplyInteractiveType = "location_request_message"
-	ButtonInteractiveReply ReplyInteractiveType = "button"
+	LocationRequestReply ReplyInteractiveType = iota
+	ButtonInteractiveReply
 )
+
+func (s ReplyInteractiveType) String() string {
+	types := []string{
+		"location_request_message",
+		"button",
+	}
+
+	if s < 0 || int(s) >= len(types) {
+		return "unknown"
+	}
+	return types[s]
+}
 
 type ReplyInteractive struct {
 	Type   ReplyInteractiveType `json:"type"`

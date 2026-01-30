@@ -1,9 +1,12 @@
 package util
 
-import "google.golang.org/genai"
+import (
+	"github.com/xerdin442/ticketing-bot/internal/api/dto"
+	"google.golang.org/genai"
+)
 
 var findEventsByFilters = &genai.FunctionDeclaration{
-	Name: "find_events",
+	Name: dto.FindEvents.String(),
 	Description: `Retrieves a list of upcoming events based on the filters (i.e. title, location, categories or date) provided by the user.
     Only call this function when the user has provided any of the filters.
     User can provide multiple filters to help the function return more accurate search results.`,
@@ -75,7 +78,7 @@ var findEventsByFilters = &genai.FunctionDeclaration{
 }
 
 var findNearbyEvents = &genai.FunctionDeclaration{
-	Name:        "find_nearby_events",
+	Name:        dto.FindNearbyEvents.String(),
 	Description: "Retrieves a list of upcoming events happening close to the user",
 	Parameters: &genai.Schema{
 		Type:       genai.TypeObject,
@@ -84,7 +87,7 @@ var findNearbyEvents = &genai.FunctionDeclaration{
 }
 
 var findTrendingEvents = &genai.FunctionDeclaration{
-	Name:        "find_trending_events",
+	Name:        dto.FindTrendingEvents.String(),
 	Description: "Retrieves a list of the most popular and trending events",
 	Parameters: &genai.Schema{
 		Type:       genai.TypeObject,
@@ -93,7 +96,7 @@ var findTrendingEvents = &genai.FunctionDeclaration{
 }
 
 var selectEvent = &genai.FunctionDeclaration{
-	Name: "select_event",
+	Name: dto.SelectEvent.String(),
 	Description: `Returns a list of ticket tiers available for the specific event selected by the user.
     This function is called after the user has selected a specific event from a list of options presented to them.`,
 	Parameters: &genai.Schema{
@@ -109,7 +112,7 @@ var selectEvent = &genai.FunctionDeclaration{
 }
 
 var selectTicketTier = &genai.FunctionDeclaration{
-	Name:        "select_ticket_tier",
+	Name:        dto.SelectTicketTier.String(),
 	Description: "Stores the name of the selected ticket tier and the purchase quantity",
 	Parameters: &genai.Schema{
 		Type: genai.TypeObject,
@@ -134,7 +137,7 @@ var selectTicketTier = &genai.FunctionDeclaration{
 }
 
 var initiateTicketPurchase = &genai.FunctionDeclaration{
-	Name:        "initiate_ticket_purchase",
+	Name:        dto.InitiateTicketPurchase.String(),
 	Description: "Generates a secure checkout link to initiate purchase of the selected tickets",
 	Parameters: &genai.Schema{
 		Type: genai.TypeObject,

@@ -50,7 +50,7 @@ func (s *GeminiService) GetNextStateAfterFunctionCall(funcName string) (dto.Conv
 }
 
 func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo dto.ConversationContext) error {
-	cacheKey := util.CreateHashedKey(phoneId)
+	cacheKey := "chat_history:" + util.CreateHashedKey(phoneId)
 
 	// Update chat history in cache
 	if _, err := s.cache.RPush(context.Background(), cacheKey, contextInfo).Result(); err != nil {
@@ -59,7 +59,7 @@ func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo dto.Conver
 	}
 
 	// Clear stored contexts in chat history after 6 hours
-	if err := s.cache.Expire(context.Background(), cacheKey, time.Until(time.Now().Add(time.Hour*6))).Err(); err != nil {
+	if err := s.cache.Expire(context.Background(), cacheKey, time.Hour*6).Err(); err != nil {
 		log.Error().Err(err).Msg("Error setting expiration time of chat context")
 		return util.ErrSetChatExpirationFailed
 	}
@@ -68,7 +68,7 @@ func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo dto.Conver
 }
 
 func (s *GeminiService) GetChatHistory(phoneId string) ([]dto.ConversationContext, error) {
-	cacheKey := util.CreateHashedKey(phoneId)
+	cacheKey := "chat_history:" + util.CreateHashedKey(phoneId)
 	result, err := s.cache.LRange(context.Background(), cacheKey, 0, -1).Result()
 
 	if err != nil {
@@ -200,7 +200,7 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 	functionResponsePart := &genai.Part{
 		FunctionResponse: &genai.FunctionResponse{
 			Name:     lastFunctionCall.Name,
-			Response: map[string]any{"apiContext": apiContext}, // Data from the backend service passed as context to the model
+			Response: apiContext, // Data from the backend service passed as context to the model
 		},
 	}
 

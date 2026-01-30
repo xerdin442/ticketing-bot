@@ -9,4 +9,6 @@ var (
 	ErrChatHistoryFetchFailed   = errors.New("Failed to fetch chat history from cache")
 	ErrEmptyConversationHistory = errors.New("Empty conversation history")
 	ErrMissingFunctionCall      = errors.New("Missing function call in latest conversation context")
+	ErrBackendRequestFailed     = errors.New("Failed to request context from backend service")
+	ErrInvalidResponsePayload   = errors.New("Invalid response payload")
 )
