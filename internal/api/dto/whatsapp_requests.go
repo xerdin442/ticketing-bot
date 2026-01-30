@@ -64,16 +64,21 @@ type WebhookRequest struct {
 	} `json:"entry"`
 }
 
-type MessageReplyPayload struct {
-	MessagingProduct string `json:"messaging_product"` // "whatsapp"
-	RecipientType    string `json:"recipient_type"`    // "individual"
-	To               string `json:"to"`
-	Type             string `json:"type"` // "text" | "interactive"
+type MessageRequestPayload struct {
+	MessagingProduct string  `json:"messaging_product"`        // Set to "whatsapp"
+	RecipientType    *string `json:"recipient_type,omitempty"` // Set to "individual"
+	To               *string `json:"to,omitempty"`
+	MessageID        *string `json:"message_id,omitempty"`
+	Status           *string `json:"status,omitempty"` // Set to "read"
+	Type             *string `json:"type,omitempty"`   // Set to either "text" or "interactive"
 	Context          *struct {
 		MessageID string `json:"message_id"`
 	} `json:"context,omitempty"`
-	Text        *ReplyText        `json:"text,omitempty"`
-	Interactive *ReplyInteractive `json:"interactive,omitempty"`
+	Text            *ReplyText        `json:"text,omitempty"`
+	Interactive     *ReplyInteractive `json:"interactive,omitempty"`
+	TypingIndicator *struct {
+		Type string `json:"type"` // Set to "text"
+	} `json:"typing_indicator,omitempty"`
 }
 
 type ReplyText struct {
@@ -101,24 +106,30 @@ func (s ReplyInteractiveType) String() string {
 }
 
 type ReplyInteractive struct {
-	Type   ReplyInteractiveType `json:"type"`
-	Header *struct {
-		Type  string `json:"type"`
-		Image struct {
-			Link string `json:"link"`
-		} `json:"image"`
-	} `json:"header,omitempty"`
-	Body struct {
+	Type   ReplyInteractiveType    `json:"type"`
+	Header *ReplyInteractiveHeader `json:"header,omitempty"`
+	Body   struct {
 		Text string `json:"text"`
 	} `json:"body"`
-	Action struct {
-		Name    *string `json:"name,omitempty"`
-		Buttons []struct {
-			Type  string `json:"type"` // "reply"
-			Reply struct {
-				ID    string `json:"id"`
-				Title string `json:"title"`
-			} `json:"reply"`
-		} `json:"buttons,omitempty"`
-	} `json:"action"`
+	Action ReplyInteractiveAction `json:"action"`
+}
+
+type ReplyInteractiveHeader struct {
+	Type  string `json:"type"` // Set to "image"
+	Image struct {
+		Link string `json:"link"`
+	} `json:"image"`
+}
+
+type ReplyInteractiveButton struct {
+	Type  string `json:"type"` // Set to "reply"
+	Reply struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	} `json:"reply"`
+}
+
+type ReplyInteractiveAction struct {
+	Name    *string                  `json:"name,omitempty"`
+	Buttons []ReplyInteractiveButton `json:"buttons,omitempty"`
 }

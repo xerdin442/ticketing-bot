@@ -49,7 +49,7 @@ func (s *GeminiService) GetNextStateAfterFunctionCall(funcName string) (dto.Conv
 	}
 }
 
-func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo dto.ConversationContext) error {
+func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo *dto.ConversationContext) error {
 	cacheKey := "chat_history:" + util.CreateHashedKey(phoneId)
 
 	// Update chat history in cache
@@ -126,7 +126,7 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 	// Generate model response
 	resp, err := s.GenerateModelResponse(contents)
 	if err != nil {
-		s.UpdateChatHistory(phoneId, dto.ConversationContext{
+		s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 			Content:      &genai.Content{Role: genai.RoleModel, Parts: []*genai.Part{{Text: "Response generation error"}}},
 			CurrentState: dto.StateResponseError,
 		})
@@ -153,13 +153,13 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 	}
 
 	// Add user input to conversation history
-	s.UpdateChatHistory(phoneId, dto.ConversationContext{
+	s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 		Content:      userContext,
 		CurrentState: currentState,
 	})
 
 	// Add model response to conversation history
-	s.UpdateChatHistory(phoneId, dto.ConversationContext{
+	s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 		Content:      &genai.Content{Role: genai.RoleModel, Parts: []*genai.Part{modelPart}},
 		CurrentState: currentState,
 	})
@@ -214,7 +214,7 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 	// Generate model response
 	resp, err := s.GenerateModelResponse(contents)
 	if err != nil {
-		s.UpdateChatHistory(phoneId, dto.ConversationContext{
+		s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 			Content:      &genai.Content{Role: "model", Parts: []*genai.Part{{Text: "Response generation error"}}},
 			CurrentState: dto.StateResponseError,
 		})
@@ -227,13 +227,13 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 	finalText := resp.Candidates[0].Content.Parts[0].Text
 
 	// Add details of function call to conversation history
-	s.UpdateChatHistory(phoneId, dto.ConversationContext{
+	s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 		Content:      functionContent,
 		CurrentState: currentState,
 	})
 
 	// Add model's final response to conversation history
-	s.UpdateChatHistory(phoneId, dto.ConversationContext{
+	s.UpdateChatHistory(phoneId, &dto.ConversationContext{
 		Content:      &genai.Content{Role: genai.RoleModel, Parts: []*genai.Part{{Text: finalText}}},
 		CurrentState: currentState,
 	})

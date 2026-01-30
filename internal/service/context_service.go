@@ -20,10 +20,10 @@ import (
 )
 
 type ApiResponse struct {
-	Events   []dto.Event      `json:"events"`
-	Tickets  []dto.TicketTier `json:"tickets"`
-	Checkout string           `json:"checkout"`
-	Message  string           `json:"message"`
+	Events   []*dto.Event      `json:"events"`
+	Tickets  []*dto.TicketTier `json:"tickets"`
+	Checkout string            `json:"checkout"`
+	Message  string            `json:"message"`
 }
 
 type ContextService struct {
