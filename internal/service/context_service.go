@@ -41,8 +41,7 @@ func NewContextService(s *secrets.Secrets, r *redis.Client) *ContextService {
 
 func (s *ContextService) sendRequest(method, path string, body io.Reader, errorMsg string) (ApiResponse, error) {
 	// Configure request details
-	baseUrl := s.env.BackendServiceUrl + "/api/whatsapp"
-	req, err := http.NewRequest(method, baseUrl+path, body)
+	req, err := http.NewRequest(method, s.env.BackendServiceUrl+path, body)
 	if err != nil {
 		return ApiResponse{}, fmt.Errorf("Error configuring new HTTP request: %s", err.Error())
 	}
