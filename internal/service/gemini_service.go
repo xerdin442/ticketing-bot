@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog/log"
 	"github.com/xerdin442/ticketing-bot/internal/api/dto"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/util"
@@ -44,8 +44,8 @@ func (s *GeminiService) GetNextStateAfterFunctionCall(funcName string) (dto.Conv
 	case strings.Contains(funcName, "initiate"):
 		return dto.StateAwaitingPayment, nil
 	default:
-		log.Fatal().Msg("Error getting next state after function call")
-		return dto.StateResponseError, util.ErrInvalidFunctionName
+		err := fmt.Errorf("Error getting next state after function call: Invalid function name")
+		return dto.StateResponseError, err
 	}
 }
 
@@ -54,14 +54,12 @@ func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo *dto.Conve
 
 	// Update chat history in cache
 	if _, err := s.cache.RPush(context.Background(), cacheKey, contextInfo).Result(); err != nil {
-		log.Error().Err(err).Msg("Error updating chat history")
-		return util.ErrChatHistoryUpdateFailed
+		return fmt.Errorf("Error updating chat history")
 	}
 
 	// Clear stored contexts in chat history after 6 hours
 	if err := s.cache.Expire(context.Background(), cacheKey, time.Hour*6).Err(); err != nil {
-		log.Error().Err(err).Msg("Error setting expiration time of chat context")
-		return util.ErrSetChatExpirationFailed
+		return fmt.Errorf("Error setting expiration time of chat context")
 	}
 
 	return nil
@@ -72,8 +70,7 @@ func (s *GeminiService) GetChatHistory(phoneId string) ([]dto.ConversationContex
 	result, err := s.cache.LRange(context.Background(), cacheKey, 0, -1).Result()
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error fetching chat history from cache")
-		return nil, util.ErrChatHistoryFetchFailed
+		return nil, fmt.Errorf("Error fetching chat history from cache")
 	}
 
 	chatHistory := make([]dto.ConversationContext, 0, len(result))
@@ -82,8 +79,7 @@ func (s *GeminiService) GetChatHistory(phoneId string) ([]dto.ConversationContex
 		var contextObj dto.ConversationContext
 
 		if err := json.Unmarshal([]byte(item), &contextObj); err != nil {
-			log.Error().Err(err).Msg("Unmarshal error: Invalid conversation context")
-			return nil, util.ErrChatHistoryFetchFailed
+			return nil, fmt.Errorf("Unmarshal error: Invalid conversation context retrieved from cache")
 		}
 
 		chatHistory = append(chatHistory, contextObj)
@@ -109,7 +105,10 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 	var contents []*genai.Content
 
 	// Fetch current conversation history
-	chatHistory, _ := s.GetChatHistory(phoneId)
+	chatHistory, err := s.GetChatHistory(phoneId)
+	if err != nil {
+		return "", err
+	}
 
 	// Extract the current state and contents of the conversation history
 	if len(chatHistory) > 0 {
@@ -131,9 +130,8 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 			CurrentState: dto.StateResponseError,
 		})
 
-		log.Error().Err(err).Msg("Error generating response from Gemini API")
-
-		return "Sorry, I am unable to process your request at the moment.", err
+		respErr := fmt.Errorf("Error generating response from Gemini API")
+		return "Sorry, I am unable to process your request at the moment.", respErr
 	}
 
 	var result any
@@ -143,7 +141,10 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 	// Check the response if the model made a function call
 	if part.FunctionCall != nil {
 		// Determine the next conversation state based on the function call
-		currentState, _ = s.GetNextStateAfterFunctionCall(part.FunctionCall.Name)
+		currentState, err = s.GetNextStateAfterFunctionCall(part.FunctionCall.Name)
+		if err != nil {
+			return "", err
+		}
 
 		result = part.FunctionCall
 		modelPart = &genai.Part{FunctionCall: part.FunctionCall}
@@ -169,10 +170,13 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 
 func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[string]any) (string, error) {
 	// Fetch current conversation history
-	chatHistory, _ := s.GetChatHistory(phoneId)
+	chatHistory, err := s.GetChatHistory(phoneId)
+	if err != nil {
+		return "", err
+	}
+
 	if len(chatHistory) == 0 {
-		log.Fatal().Msg("Error processing function call: Empty conversation history")
-		return "", util.ErrEmptyConversationHistory
+		return "", fmt.Errorf("Error processing function call: Empty conversation history")
 	}
 
 	// Extract the current state and contents of the conversation history
@@ -192,8 +196,8 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 	}
 
 	if lastFunctionCall == nil {
-		log.Fatal().Msg("Error processing function call: Missing function call in latest conversation context")
-		return "", util.ErrMissingFunctionCall
+		err := fmt.Errorf("Error processing function call: Missing function call in latest conversation context")
+		return "", err
 	}
 
 	// Define the response from the function call
@@ -219,9 +223,8 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 			CurrentState: dto.StateResponseError,
 		})
 
-		log.Error().Err(err).Msg("Error generating response from Gemini API")
-
-		return "Sorry, I am unable to process your request at the moment.", err
+		respErr := fmt.Errorf("Error generating response from Gemini API")
+		return "Sorry, I am unable to process your request at the moment.", respErr
 	}
 
 	finalText := resp.Candidates[0].Content.Parts[0].Text

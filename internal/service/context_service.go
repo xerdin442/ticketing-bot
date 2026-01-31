@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog/log"
 	"github.com/xerdin442/ticketing-bot/internal/api/dto"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/util"
@@ -45,8 +44,7 @@ func (s *ContextService) sendRequest(method, path string, body io.Reader, errorM
 	baseUrl := s.env.BackendServiceUrl + "/api/whatsapp"
 	req, err := http.NewRequest(method, baseUrl+path, body)
 	if err != nil {
-		log.Error().Err(err).Msg("Error configuring new HTTP request")
-		return ApiResponse{}, err
+		return ApiResponse{}, fmt.Errorf("Error configuring new HTTP request: %s", err.Error())
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -55,25 +53,19 @@ func (s *ContextService) sendRequest(method, path string, body io.Reader, errorM
 	// Send request to backend service
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Msg("Error sending request to backend service")
-		return ApiResponse{}, err
+		return ApiResponse{}, fmt.Errorf("Error sending request to backend service: %s", err.Error())
 	}
 	defer resp.Body.Close()
 
 	// Decode response body
 	var result ApiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Error().Msg("Error decoding repsonse body: Invalid structure")
-		return ApiResponse{}, util.ErrInvalidResponsePayload
+		return ApiResponse{}, fmt.Errorf("Error decoding repsonse body: %s", err.Error())
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error().
-			Int("status_code", resp.StatusCode).
-			Str("error_msg", result.Message).
-			Msg(errorMsg)
-
-		return ApiResponse{}, util.ErrBackendRequestFailed
+		err := fmt.Errorf("%s. Error: %s Status code: %d", errorMsg, result.Message, resp.StatusCode)
+		return ApiResponse{}, err
 	}
 
 	return result, nil
@@ -92,8 +84,8 @@ func (s *ContextService) SelectEndpoint(funcCall *genai.FunctionCall, phoneId st
 	case dto.InitiateTicketPurchase.String():
 		return s.InitiateTicketPurchase(funcCall.Args["email"], phoneId)
 	default:
-		log.Fatal().Msg("Error selecting endpoint in context service: Invalid function name")
-		return nil, util.ErrInvalidFunctionName
+		err := fmt.Errorf("Error selecting endpoint in context service: Invalid function name")
+		return nil, err
 	}
 }
 
@@ -167,8 +159,7 @@ func (s *ContextService) SelectTicketTier(args map[string]any, phoneId string) (
 	cacheKey := "ticket_purchase:" + util.CreateHashedKey(phoneId)
 
 	if _, err := s.cache.Set(context.Background(), cacheKey, args, time.Hour*3).Result(); err != nil {
-		log.Error().Err(err).Msg("Error storing ticket purchase details in cache")
-		return nil, err
+		return nil, fmt.Errorf("Error storing ticket purchase details in cache")
 	}
 
 	return map[string]any{"message": "Ticket purchase details stored in cache"}, nil
@@ -183,14 +174,13 @@ func (s *ContextService) InitiateTicketPurchase(email any, phoneId string) (map[
 			"message": "Ticket purchase window has expired. Please restart the process",
 		}, nil
 	} else if err != nil {
-		log.Error().Err(err).Msg("Error fetching ticket purchase details from cache")
-		return nil, err
+		return nil, fmt.Errorf("Error fetching ticket purchase details from cache: %s", err.Error())
 	}
 
 	// Extract purchase details from cache result
 	var details map[string]any
 	if err := json.Unmarshal([]byte(cacheResult), &details); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error parsing purchase details stored in cache: %s", err.Error())
 	}
 
 	// Configure request payload

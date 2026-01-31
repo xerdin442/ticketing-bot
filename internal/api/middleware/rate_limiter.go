@@ -12,12 +12,14 @@ import (
 )
 
 func (m *Middleware) RateLimiters() []gin.HandlerFunc {
-	store, err := redis.NewStore(m.cache)
+	store, err := redis.NewStore(m.Cache)
 	if err != nil {
 		log.Fatal().Msg("Failed to create Redis store for rate limiter")
 	}
 
 	limitHandler := func(c *gin.Context) {
+		log.Warn().Msgf("Rate-limited requests from IP: %s", c.ClientIP())
+
 		c.AbortWithStatusJSON(
 			http.StatusTooManyRequests,
 			gin.H{"error": "Too many requests. Please try again later."},

@@ -1,15 +1,13 @@
 package middleware
 
 import (
-	"github.com/redis/go-redis/v9"
-	"github.com/xerdin442/ticketing-bot/internal/secrets"
+	"github.com/xerdin442/ticketing-bot/internal/api/handlers"
 )
 
 type Middleware struct {
-	env   *secrets.Secrets
-	cache *redis.Client
+	handlers.Base
 }
 
-func New(s *secrets.Secrets, r *redis.Client) *Middleware {
-	return &Middleware{env: s, cache: r}
+func New(b handlers.Base) *Middleware {
+	return &Middleware{Base: b}
 }

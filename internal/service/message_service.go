@@ -41,8 +41,7 @@ func (s *MessageService) sendRequest(body io.Reader, errorMsg string) error {
 	// Configure request details
 	req, err := http.NewRequest("POST", s.env.WhatsappMessagingApiUrl, body)
 	if err != nil {
-		log.Error().Err(err).Msg("Error configuring new HTTP request")
-		return err
+		return fmt.Errorf("Error configuring new HTTP request. %s", err.Error())
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -51,19 +50,15 @@ func (s *MessageService) sendRequest(body io.Reader, errorMsg string) error {
 	// Send request to backend service
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Msg("Error sending request to Whatsapp Cloud API")
-		return err
+		return fmt.Errorf("Error sending request to Whatsapp Cloud API. %s", err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error().
-			Int("status_code", resp.StatusCode).
-			Msg(errorMsg)
-
-		return util.ErrWahtsappApiRequestFailed
+		return fmt.Errorf("%s. Status code: %d", errorMsg, resp.StatusCode)
 	}
 
+	log.Info().Msg("Reply sent successfully!")
 	return nil
 }
 
@@ -234,7 +229,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 			if strings.HasPrefix(functionCall.Name, "find_") {
 				events, ok := apiContext["events"].([]*dto.Event)
 				if !ok {
-					return util.ErrInvalidContextPayloadType
+					return fmt.Errorf("Invalid payload type received from backend service")
 				}
 
 				// Send interactive buttton messages for users to select from if context is a non-empty list of events
@@ -255,8 +250,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 				finalResponse = secondResponse
 			}
 		default:
-			log.Fatal().Msg("Error processing user input: Unknown model response type")
-			return util.ErrUnknownModelResponseType
+			return fmt.Errorf("Error processing user input: Unknown model response type")
 		}
 
 		// Configure request payload
@@ -294,7 +288,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 
 		events, ok := apiContext["events"].([]*dto.Event)
 		if !ok {
-			return util.ErrInvalidContextPayloadType
+			return fmt.Errorf("Invalid payload type received from backend service")
 		}
 
 		// Send list of nearby events to user
@@ -307,7 +301,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 			return nil
 		}
 
-		// Update function call with empty nearby events result
+		// Update function call with empty result
 		resp, err := s.gemini.ProcessFunctionCall(senderId, apiContext)
 		if err != nil {
 			return err
@@ -347,13 +341,11 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 		// Verify that model's response is a function call
 		switch v := firstResponse.(type) {
 		case string:
-			log.Error().Msg("Error verifying model's response: Expected function call")
-			return util.ErrExpectedFunctionCall
+			return fmt.Errorf("Incorrect model response. Expected a function call")
 		case *genai.FunctionCall:
 			// Verify details of function call
 			if v.Name != dto.SelectEvent.String() {
-				log.Error().Msgf("Error verifying function call from model. Expected %s, received: %s", dto.SelectEvent, v.Name)
-				return util.ErrWrongFunctionCall
+				return fmt.Errorf("Error verifying function call from model. Expected %s, received: %s", dto.SelectEvent, v.Name)
 			}
 
 			apiContext, err := s.context.SelectEndpoint(v, senderId)
@@ -395,7 +387,6 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 
 		return nil
 	default:
-		log.Fatal().Msg("Error handling incoming message from Whatsapp Cloud API: Invalid message type")
-		return util.ErrInvalidIncomingMessageType
+		return fmt.Errorf("Invalid incoming message type received from Whatsapp Cloud API")
 	}
 }

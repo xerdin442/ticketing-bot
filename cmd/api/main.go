@@ -8,16 +8,14 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/xerdin442/ticketing-bot/internal/api/handlers"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/service"
 )
 
 type application struct {
-	port       int
-	env        *secrets.Secrets
-	tasksQueue *asynq.Client
-	cache      *redis.Client
-	services   *service.Manager
+	port int
+	handlers.Base
 }
 
 func main() {
@@ -48,11 +46,13 @@ func main() {
 	)
 
 	app := &application{
-		port:       env.Port,
-		cache:      cache,
-		tasksQueue: tasksQueue,
-		env:        env,
-		services:   svc,
+		port: env.Port,
+		Base: handlers.Base{
+			Env:        env,
+			Cache:      cache,
+			TasksQueue: tasksQueue,
+			Services:   svc,
+		},
 	}
 
 	// Start the http server

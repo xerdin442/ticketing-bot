@@ -12,20 +12,27 @@ import (
 
 func (app *application) routes() http.Handler {
 	r := gin.New()
-	m := middleware.New(app.env, app.cache)
+	m := middleware.New(app.Base)
+	h := handlers.New(app.Base)
 
 	r.Use(m.CustomRequestLogger())
 	r.Use(m.RateLimiters()...)
 	r.Use(gin.Recovery())
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{app.env.BackendServiceUrl},
+		AllowOrigins:     []string{app.Env.BackendServiceUrl},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
-	h := handlers.New(app.services, app.cache, app.tasksQueue)
+	message := r.Group("/messages")
+	{
+		message.GET("/webhook", h.VerifyWebhook)
+		message.POST("/webhook", h.HandleIncomingMessage)
+	}
+
+	r.POST("/payments/callback")
 
 	return r
 }
