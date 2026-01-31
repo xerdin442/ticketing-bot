@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
@@ -14,17 +13,20 @@ func (m *Middleware) CustomRequestLogger() gin.HandlerFunc {
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 
-		// Generate and attach a request ID to the request context
-		reqID := uuid.New().String()
-		c.Header("X-Request-ID", reqID)
-		ctx := log.With().Str("id", reqID).Logger().WithContext(c.Request.Context())
-		c.Request = c.Request.WithContext(ctx)
+		c.Next()
 
-		c.Next() // Process request
+		// Display log level based on HTTP status
+		status := c.Writer.Status()
+		event := log.Info()
+		if status >= 400 && status < 500 {
+			event = log.Warn()
+		} else if status >= 500 {
+			event = log.Error()
+		}
 
-		log.Info().
+		event.
 			Str("method", c.Request.Method).
-			Int("status", c.Writer.Status()).
+			Int("status", status).
 			Str("path", path).
 			Str("query", query).
 			Str("ip", c.ClientIP()).
