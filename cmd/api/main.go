@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -24,6 +25,11 @@ func main() {
 
 	// Load environment variables
 	env := secrets.Load()
+
+	// Turn off debug messages in production
+	if env.Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	// Improve readability of the logs in development
 	if env.Environment == "development" {
