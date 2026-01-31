@@ -19,24 +19,26 @@ func main() {
 	env := secrets.Load()
 
 	// Initialize cache
-	cache := redis.NewClient(&redis.Options{
-		Addr:     env.RedisAddr,
-		Password: env.RedisPassword,
-	})
+	cacheOpts, err := redis.ParseURL(env.RedisUri)
+	if err != nil {
+		log.Fatal().Msg("Invalid Redis connection URL")
+	}
+
+	cache := redis.NewClient(cacheOpts)
 
 	// Improve readability of the logs in development
 	if env.Environment == "development" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 	}
 
-	redisConn := asynq.RedisClientOpt{
-		Addr:     env.RedisAddr,
-		Password: env.RedisPassword,
+	queueOpts, err := asynq.ParseRedisURI(env.RedisUri)
+	if err != nil {
+		log.Fatal().Msg("Invalid Redis connection URL")
 	}
 
 	// Initialize the worker server
 	srv := asynq.NewServer(
-		redisConn,
+		queueOpts,
 		asynq.Config{Concurrency: 10},
 	)
 
@@ -44,6 +46,7 @@ func main() {
 	h := tasks.NewHandler(env, cache)
 
 	mux := asynq.NewServeMux()
+	mux.HandleFunc("payment_queue", h.HandlePaymentWebhookTask)
 
 	// Start the worker server
 	go func() {

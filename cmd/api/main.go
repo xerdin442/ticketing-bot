@@ -31,19 +31,21 @@ func main() {
 	}
 
 	// Initialize cache and services
-	cache := redis.NewClient(&redis.Options{
-		Addr:     env.RedisAddr,
-		Password: env.RedisPassword,
-	})
+	cacheOpts, err := redis.ParseURL(env.RedisUri)
+	if err != nil {
+		log.Fatal().Msg("Invalid Redis connection URL")
+	}
+
+	cache := redis.NewClient(cacheOpts)
 	svc := service.NewManager(env, cache)
 
 	// Initialize task queue
-	tasksQueue := asynq.NewClient(
-		asynq.RedisClientOpt{
-			Addr:     env.RedisAddr,
-			Password: env.RedisPassword,
-		},
-	)
+	queueOpts, err := asynq.ParseRedisURI(env.RedisUri)
+	if err != nil {
+		log.Fatal().Msg("Invalid Redis connection URL")
+	}
+
+	tasksQueue := asynq.NewClient(queueOpts)
 
 	app := &application{
 		port: env.Port,

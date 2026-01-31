@@ -11,8 +11,7 @@ import (
 type Secrets struct {
 	Port                             int
 	Environment                      string
-	RedisAddr                        string
-	RedisPassword                    string
+	RedisUri                         string
 	WhatsappWebhookVerificationToken string
 	WhatsappUserAccessToken          string
 	WhatsappMessagingApiUrl          string
@@ -26,8 +25,7 @@ func Load() *Secrets {
 	return &Secrets{
 		Port:                             GetInt("PORT"),
 		Environment:                      GetStr("ENVIRONMENT"),
-		RedisAddr:                        GetStr("REDIS_ADDR"),
-		RedisPassword:                    GetStr("REDIS_PASSWORD"),
+		RedisUri:                         GetStr("REDIS_URI"),
 		WhatsappWebhookVerificationToken: GetStr("WHATSAPP_WEBHOOK_VERIFICATION_TOKEN"),
 		WhatsappUserAccessToken:          GetStr("WHATSAPP_USER_ACCESS_TOKEN"),
 		WhatsappMessagingApiUrl:          GetStr("WHATSAPP_MESSAGING_API_URL"),

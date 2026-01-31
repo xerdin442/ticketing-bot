@@ -13,12 +13,14 @@ type TasksClient interface {
 
 type TaskHandler struct {
 	env    *secrets.Secrets
+	cache  *redis.Client
 	gemini *service.GeminiService
 }
 
 func NewHandler(s *secrets.Secrets, r *redis.Client) *TaskHandler {
 	return &TaskHandler{
 		env:    s,
+		cache:  r,
 		gemini: service.NewGeminiService(s, r),
 	}
 }

@@ -155,15 +155,13 @@ func (s *MessageService) sendInteractiveBtnMessage(phoneId string, event *dto.Ev
 func (s *MessageService) sendEventsList(phoneId, messageId, funcName string, ctx map[string]any, events []*dto.Event) error {
 	functionResult := &dto.ConversationContext{
 		Content: &genai.Content{
-			Role: genai.RoleModel,
-			Parts: []*genai.Part{
-				{
-					FunctionResponse: &genai.FunctionResponse{
-						Name:     funcName,
-						Response: ctx,
-					},
+			Role: "system",
+			Parts: []*genai.Part{{
+				FunctionResponse: &genai.FunctionResponse{
+					Name:     funcName,
+					Response: ctx,
 				},
-			},
+			}},
 		},
 		CurrentState: dto.StateEventQuery,
 	}
@@ -258,7 +256,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 			MessagingProduct: "whatsapp",
 			RecipientType:    ptr("individual"),
 			To:               &senderId,
-			Type:             ptr("interactive"),
+			Type:             ptr("text"),
 			Context: &struct {
 				MessageID string "json:\"message_id\""
 			}{MessageID: messageId},
@@ -312,7 +310,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 			MessagingProduct: "whatsapp",
 			RecipientType:    ptr("individual"),
 			To:               &senderId,
-			Type:             ptr("interactive"),
+			Type:             ptr("text"),
 			Context: &struct {
 				MessageID string "json:\"message_id\""
 			}{MessageID: messageId},
@@ -364,7 +362,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 				MessagingProduct: "whatsapp",
 				RecipientType:    ptr("individual"),
 				To:               &senderId,
-				Type:             ptr("interactive"),
+				Type:             ptr("text"),
 				Context: &struct {
 					MessageID string "json:\"message_id\""
 				}{MessageID: messageId},

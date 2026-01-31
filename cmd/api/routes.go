@@ -32,7 +32,7 @@ func (app *application) routes() http.Handler {
 		message.POST("/webhook", h.HandleIncomingMessage)
 	}
 
-	r.POST("/payments/callback")
+	r.POST("/payments/callback", h.CheckPaymentStatus)
 
 	return r
 }

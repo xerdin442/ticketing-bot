@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 	"github.com/xerdin442/ticketing-bot/internal/api/dto"
 	"github.com/xerdin442/ticketing-bot/internal/secrets"
 	"github.com/xerdin442/ticketing-bot/internal/util"
@@ -130,8 +131,9 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 			CurrentState: dto.StateResponseError,
 		})
 
-		respErr := fmt.Errorf("Error generating response from Gemini API")
-		return "Sorry, I am unable to process your request at the moment.", respErr
+		log.Error().Err(err).Msg("Error generating response from Gemini API")
+
+		return "Sorry, I am unable to process your request at the moment.", nil
 	}
 
 	var result any
@@ -200,18 +202,15 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 		return "", err
 	}
 
-	// Define the response from the function call
-	functionResponsePart := &genai.Part{
-		FunctionResponse: &genai.FunctionResponse{
-			Name:     lastFunctionCall.Name,
-			Response: apiContext, // Data from the backend service passed as context to the model
-		},
-	}
-
 	// Configure the context to be passed to the model
 	functionContent := &genai.Content{
-		Role:  genai.RoleModel,
-		Parts: []*genai.Part{functionResponsePart},
+		Role: "system",
+		Parts: []*genai.Part{{
+			FunctionResponse: &genai.FunctionResponse{
+				Name:     lastFunctionCall.Name,
+				Response: apiContext, // Data from the backend service passed as context to the model
+			},
+		}},
 	}
 	contents = append(contents, functionContent)
 
@@ -223,8 +222,9 @@ func (s *GeminiService) ProcessFunctionCall(phoneId string, apiContext map[strin
 			CurrentState: dto.StateResponseError,
 		})
 
-		respErr := fmt.Errorf("Error generating response from Gemini API")
-		return "Sorry, I am unable to process your request at the moment.", respErr
+		log.Error().Err(err).Msg("Error generating response from Gemini API")
+
+		return "Sorry, I am unable to process your request at the moment.", nil
 	}
 
 	finalText := resp.Candidates[0].Content.Parts[0].Text
