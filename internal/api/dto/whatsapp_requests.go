@@ -106,7 +106,7 @@ func (s ReplyInteractiveType) String() string {
 }
 
 type ReplyInteractive struct {
-	Type   ReplyInteractiveType    `json:"type"`
+	Type   string                  `json:"type"`
 	Header *ReplyInteractiveHeader `json:"header,omitempty"`
 	Body   struct {
 		Text string `json:"text"`

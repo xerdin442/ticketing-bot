@@ -88,7 +88,7 @@ func (s *MessageService) sendLocationRequest(phoneId, messageId string) error {
 			MessageID string "json:\"message_id\""
 		}{MessageID: messageId},
 		Interactive: &dto.ReplyInteractive{
-			Type: dto.LocationRequestReply,
+			Type: dto.LocationRequestReply.String(),
 			Body: struct {
 				Text string "json:\"text\""
 			}{
@@ -117,7 +117,7 @@ func (s *MessageService) sendInteractiveBtnMessage(phoneId string, event *dto.Ev
 		To:               &phoneId,
 		Type:             ptr("interactive"),
 		Interactive: &dto.ReplyInteractive{
-			Type: dto.ButtonInteractiveReply,
+			Type: dto.ButtonInteractiveReply.String(),
 			Header: &dto.ReplyInteractiveHeader{
 				Type: "image",
 				Image: struct {
