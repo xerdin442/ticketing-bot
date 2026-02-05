@@ -30,7 +30,7 @@ func (m *Middleware) CustomRequestLogger() gin.HandlerFunc {
 			Str("path", path).
 			Str("query", query).
 			Str("ip", c.ClientIP()).
-			Dur("latency", time.Since(start)).
+			Int64("latency", time.Since(start).Milliseconds()).
 			Msg("Request processed")
 	}
 }
