@@ -193,7 +193,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 	messageId := message.ID
 
 	switch message.Type {
-	case dto.TextMessageType:
+	case dto.TextMessageType.String():
 		var finalResponse string
 
 		// Process incoming message from user
@@ -274,7 +274,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 		body, _ := json.Marshal(payload)
 		errorMsg := "Error handling text message webhook from Whatsapp Cloud API"
 		return s.sendRequest(bytes.NewBuffer(body), errorMsg)
-	case dto.LocationMessageType:
+	case dto.LocationMessageType.String():
 		// Extract coordinates from location message
 		latitude := message.Location.Latitude
 		longitude := message.Location.Longitude
@@ -328,7 +328,7 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 		body, _ := json.Marshal(payload)
 		errorMsg := "Error handling location message webhook from Whatsapp Cloud API"
 		return s.sendRequest(bytes.NewBuffer(body), errorMsg)
-	case dto.InteractiveMessageType:
+	case dto.InteractiveMessageType.String():
 		// Extract details of user's selection and pass as context to model
 		userInput := message.Interactive.ButtonReply.ID
 		firstResponse, err := s.gemini.ProcessUserMessage(senderId, userInput)
@@ -385,6 +385,6 @@ func (s *MessageService) HandleIncomingMessage(message dto.IncomingMessage) erro
 
 		return nil
 	default:
-		return fmt.Errorf("Invalid incoming message type received from Whatsapp Cloud API")
+		return fmt.Errorf("Invalid incoming message received from Whatsapp Cloud API")
 	}
 }

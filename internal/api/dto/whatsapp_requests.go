@@ -26,10 +26,10 @@ type IncomingMessage struct {
 		From string `json:"from"`
 		ID   string `json:"id"`
 	} `json:"context,omitempty"`
-	From      string              `json:"from"`
-	ID        string              `json:"id"`
-	Timestamp string              `json:"timestamp"`
-	Type      IncomingMessageType `json:"type"`
+	From      string `json:"from"`
+	ID        string `json:"id"`
+	Timestamp string `json:"timestamp"`
+	Type      string `json:"type"`
 	Text      *struct {
 		Body string `json:"body"`
 	} `json:"text,omitempty"`
