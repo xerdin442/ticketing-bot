@@ -53,14 +53,26 @@ func (s *GeminiService) GetNextStateAfterFunctionCall(funcName string) (dto.Conv
 func (s *GeminiService) UpdateChatHistory(phoneId string, contextInfo *dto.ConversationContext) error {
 	cacheKey := "chat_history:" + util.CreateHashedKey(phoneId)
 
-	// Update chat history in cache
-	if _, err := s.cache.RPush(context.Background(), cacheKey, contextInfo).Result(); err != nil {
-		return fmt.Errorf("Error updating chat history")
+	// Serialize conversation context
+	data, err := json.Marshal(contextInfo)
+	if err != nil {
+		return fmt.Errorf("Failed to serialize chat context: %w", err)
 	}
 
-	// Clear stored contexts in chat history after 6 hours
-	if err := s.cache.Expire(context.Background(), cacheKey, time.Hour*6).Err(); err != nil {
-		return fmt.Errorf("Error setting expiration time of chat context")
+	ctx := context.Background()
+	pipe := s.cache.Pipeline()
+
+	// Add new context to history
+	pipe.RPush(ctx, cacheKey, data)
+
+	// Retain only the latest 30 messages
+	pipe.LTrim(ctx, cacheKey, -30, -1)
+
+	// Refresh expiry
+	pipe.Expire(ctx, cacheKey, time.Hour*6)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("Error updating chat history")
 	}
 
 	return nil
