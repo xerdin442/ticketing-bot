@@ -149,22 +149,19 @@ func (s *GeminiService) ProcessUserMessage(phoneId string, userInput string) (an
 	}
 
 	var result any
-	var modelPart *genai.Part
-	part := resp.Candidates[0].Content.Parts[0]
+	modelPart := resp.Candidates[0].Content.Parts[0]
 
 	// Check the response if the model made a function call
-	if part.FunctionCall != nil {
+	if modelPart.FunctionCall != nil {
 		// Determine the next conversation state based on the function call
-		currentState, err = s.GetNextStateAfterFunctionCall(part.FunctionCall.Name)
+		currentState, err = s.GetNextStateAfterFunctionCall(modelPart.FunctionCall.Name)
 		if err != nil {
 			return "", err
 		}
 
-		result = part.FunctionCall
-		modelPart = &genai.Part{FunctionCall: part.FunctionCall}
+		result = modelPart.FunctionCall
 	} else {
-		result = part.Text
-		modelPart = &genai.Part{Text: part.Text}
+		result = modelPart.Text
 	}
 
 	// Add user input to conversation history
