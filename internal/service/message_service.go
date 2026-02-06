@@ -58,7 +58,6 @@ func (s *MessageService) sendRequest(body io.Reader, errorMsg string) error {
 		return fmt.Errorf("%s. Status code: %d", errorMsg, resp.StatusCode)
 	}
 
-	log.Info().Msg("Reply sent successfully!")
 	return nil
 }
 

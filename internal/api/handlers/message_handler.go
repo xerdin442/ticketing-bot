@@ -68,5 +68,6 @@ func (h *RouteHandler) HandleIncomingMessage(c *gin.Context) {
 		return
 	}
 
+	log.Info().Msg("Reply sent successfully!")
 	c.Status(http.StatusOK)
 }
