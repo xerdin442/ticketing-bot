@@ -1,6 +1,8 @@
 # Ticketing Bot
 
-A AI-powered assistant that condenses the entire ticketing experience (from event discovery to ticket purchasing) into a seamless, conversational flow on WhatsApp. [See demo here](https://x.com/xerdin_442/status/1997670636143935603?s=20)
+An AI-powered assistant that condenses the entire ticketing experience (from event discovery to ticket purchasing) into a seamless, conversational flow on WhatsApp. [See demo here](https://x.com/xerdin_442/status/1997670636143935603?s=20)
+
+The bot retrieves data from a custom-built backend service. [See here](https://github.com/xerdin442/event-ticketing-saas)
 
 ## Features
 
