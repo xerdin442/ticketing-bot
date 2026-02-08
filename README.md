@@ -10,7 +10,7 @@ A AI-powered assistant that condenses the entire ticketing experience (from even
 
 * **Tier Selection:** Interactive selection of ticket tiers handled entirely within the chat.
 
-* **Secure Checkout:** Generates unique, secure checkout links for frictionless payments.
+* **Ticket Purchase:** Generates unique, secure checkout links for frictionless payments.
 
 * **Dynamic Intelligence:** The bot is powered by Gemini 3. This enables the bot to handle complex queries, remember conversation context and provide human-like assistance.
 
